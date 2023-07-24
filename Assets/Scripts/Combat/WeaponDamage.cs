@@ -1,19 +1,20 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class WeaponDamage : MonoBehaviour
 {
     [SerializeField] private Collider myCollider;
 
-    private List<Collider> allreadyCollidedWith = new List<Collider>();
+    private List<Collider> alreadyCollidedWith = new List<Collider>();
 
     private int damage;
     private float knockBack;
 
     private void OnEnable()
     {
-        allreadyCollidedWith.Clear();
+        alreadyCollidedWith.Clear();
     }
 
     private void OnTriggerEnter(Collider other)
@@ -22,24 +23,25 @@ public class WeaponDamage : MonoBehaviour
         {
             return;
         }
-        if (allreadyCollidedWith.Contains(other))
+
+        if (alreadyCollidedWith.Contains(other))
         {
             return;
         }
 
-        allreadyCollidedWith.Add(other);
+        alreadyCollidedWith.Add(other);
 
         if (other.TryGetComponent<Health>(out Health health))
         {
             health.DealDamage(damage);
         }
-        if (other.TryGetComponent<ForceReceiver>(out ForceReceiver forceReceiver))
+        if (other.TryGetComponent<ForceReciever>(out ForceReciever forceReciever))
         {
-            Vector2 direction = (other.transform.position - myCollider.transform.position).normalized * knockBack;
-            forceReceiver.AddForce(direction * knockBack);
+            Vector3 direction = (other.transform.position - myCollider.transform.position).normalized;
+            forceReciever.AddForce(direction * knockBack);
         }
-
     }
+
     public void SetAttack(int damage,float knockBack)
     {
         this.damage = damage;

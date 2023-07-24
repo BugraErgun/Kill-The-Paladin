@@ -1,45 +1,44 @@
 using System.Collections;
 using System.Collections.Generic;
-using Cinemachine;
 using UnityEngine;
-
+using Cinemachine;
+using System;
 
 public class Targeter : MonoBehaviour
 {
     private Camera mainCamera;
 
     [SerializeField]
+    private CinemachineTargetGroup cinemachineTargetGroup;
+
+    [SerializeField]
     private List<Target> targets = new List<Target>();
 
-    public Target CurrentTarget { get; private set; }
-
-    [SerializeField] private CinemachineTargetGroup cinemachineTargetGroup;
+    public Target currentTarget { get; private set; }
 
     private void Start()
     {
         mainCamera = Camera.main;
     }
+
     private void OnTriggerEnter(Collider other)
     {
-        if (!other.TryGetComponent<Target>(out Target target))
-        {
-            return;
-        }
+        if (!other.TryGetComponent<Target>(out Target target)) { return; }
+
         targets.Add(target);
         target.OnDestroyed += RemoveTarget;
-
     }
+
     private void OnTriggerExit(Collider other)
     {
-        if (!other.TryGetComponent<Target>(out Target target))
-        {
-            return;
-        }
+        if (!other.TryGetComponent<Target>(out Target target)) { return; }
+
         RemoveTarget(target);
     }
-   public bool SelectTarget()
+
+    public bool SelectTarget()
     {
-        if (targets.Count ==0)
+        if (targets.Count== 0 )
         {
             return false;
         }
@@ -51,12 +50,13 @@ public class Targeter : MonoBehaviour
         {
             Vector2 viewPos = mainCamera.WorldToViewportPoint(target.transform.position);
 
-            if (viewPos.x<0 || viewPos.x>1 || viewPos.y<0 || viewPos.y>1)
+            if (!target.GetComponentInChildren<Renderer>().isVisible)
             {
                 continue;
             }
-            Vector2 toCenter = viewPos - new Vector2(0.5f, 0.5f);
-            if (toCenter.sqrMagnitude < closestTargetDistance)
+
+            Vector2 toCenter = viewPos - new Vector2(.5f, .5f);
+            if (toCenter.sqrMagnitude<closestTargetDistance)
             {
                 closestTarget = target;
                 closestTargetDistance = toCenter.sqrMagnitude;
@@ -68,30 +68,30 @@ public class Targeter : MonoBehaviour
             return false;
         }
 
-        CurrentTarget = closestTarget;
-
-        cinemachineTargetGroup.AddMember(CurrentTarget.transform, 1, 2);
-
+        currentTarget = closestTarget;
+        cinemachineTargetGroup.AddMember(currentTarget.transform,1f,2f);
         return true;
     }
+
     public void Cancel()
     {
-        if (CurrentTarget == null)
+        if (currentTarget == null)
         {
             return;
         }
-        cinemachineTargetGroup.RemoveMember(CurrentTarget.transform);
-        CurrentTarget = null;      
+        cinemachineTargetGroup.RemoveMember(currentTarget.transform);
+        currentTarget = null;
     }
+
     private void RemoveTarget(Target target)
     {
-        if (CurrentTarget == target)
+        if (currentTarget == target)
         {
-            cinemachineTargetGroup.RemoveMember(CurrentTarget.transform);
-            CurrentTarget = null;
-
+            cinemachineTargetGroup.RemoveMember(currentTarget.transform);
+            currentTarget = null;
         }
         target.OnDestroyed -= RemoveTarget;
         targets.Remove(target);
     }
 }
+
